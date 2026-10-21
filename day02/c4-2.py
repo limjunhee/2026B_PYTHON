@@ -47,3 +47,58 @@ for key in dict_a :
     name : 어벤저스 엔드게임
     type : 호러 무비
 '''
+
+# 확인문제 1
+dict_a = {}
+
+dict_a['name'] = "구름"
+print(dict_a)
+
+del dict_a['name']
+print(dict_a)
+
+# 확인문제 2
+pets = [
+    {"name":"구름", "age":5},
+    {"name":"초코", "age":3},
+    {"name":"아지", "age":1},
+    {"name":"호랑이", "age":1},
+]
+
+print("# 우리 동네 애완 동물들")
+for i in pets :
+    print(f"{i["name"]} {i["age"]}살")
+
+# 확인문제 3
+numbers = [1,2,3,4,5,6,7,8,9,0,123]
+counter= {}
+
+for number in numbers :
+    if number not in counter :
+        counter[number] = 1
+        continue
+    counter[number] += 1
+
+print(counter)
+
+# 확인문제 4
+
+character = {
+    "name": "기사",
+    "level": 12,
+    "items": {
+        "sword": "불꽃의 검",
+        "armor": "풀플레이트"
+    },
+    "skill" : ["베기", "세게 베기", "아주 세게 베기"]
+}
+
+for key in character:
+    if type(character.get(key)) is list :
+        for i in range(len(character[key])):
+            print(key,":",character[key][i-1])
+    elif type(character.get(key)) is dict :
+        for dict_key in character.get(key) :
+            print(dict_key,":", character.get(key)[dict_key])
+    else :
+        print(key,":",character.get(key))
