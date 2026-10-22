@@ -27,12 +27,16 @@ def factorial2( n ) :
 factorial2( 2 )
 factorial2( 3 )
 # 만약에 n 이 3이면 n == 0 false 
-    # return n * factorial2( 2 )                                   return 3 * 2 * 1 * 1
-        # n 이 2이면 n == 0 false   
-            # return n * factorial2( 1 )                        return 2 * 1 * 1
-                 # n 이 1이면 n == 0 false
-                    # return n * factorial2( 0 )            return 1 * 1
-                        # n 이 0 이면 n == 0 true       return 1
+# return n * factorial2( 2 )    return 3 * 2 * 1 * 1
+
+# n 이 2이면 n == 0 false   
+# return n * factorial2( 1 )    return 2 * 1 * 1
+
+# n 이 1이면 n == 0 false
+# return n * factorial2( 0 )    return 1 * 1
+
+# n 이 0 이면 n == 0 true       return 1
+
 # 함수 호출 1개당 리턴1번 => 함수 3번 호출 / 리턴 3번 
 
 # 구구단 반복문

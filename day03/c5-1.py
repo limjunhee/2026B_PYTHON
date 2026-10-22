@@ -86,3 +86,12 @@ value = return_test2()
 print( value )
 
 # p.287 예제1 , 288 예제2 코드 보고 구현 후 쉬는시간 
+
+def mul(*values) :
+    result = 1
+    for value in values :
+        result *= value
+
+    return result
+
+print(mul(5,7,9,10))
