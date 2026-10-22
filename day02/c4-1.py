@@ -122,3 +122,11 @@ for i in range(0, len(numbers) // 2):
     numbers[j] = numbers[j] ** 2
 
 print(numbers)
+
+
+numbers = [1,2,3,4,5,6,7,8,9]
+output = [[],[],[]]
+for number in numbers :
+    output[int(number % 3 - 1)].append(number)
+
+print(output)

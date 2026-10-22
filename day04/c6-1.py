@@ -71,3 +71,30 @@ finally :
 
 print("파일 제대로 닫혔는지 확인하기")
 print("file.closed:", file.closed) # file.closed: True
+
+
+# 확인문제
+
+#2번
+numbers = [52,273,32,103,90,10,275]
+print("(1)")
+print("- {}는 {}위치에 있음".format(52, numbers.index(52)))
+print()
+
+print("2")
+number = 10000
+if number in numbers:
+# try:
+    print("- {}는 {}위치에 있음".format(number, numbers.index(number)))
+else :
+# except:
+    print("- 리스트 내부에 없는 값입니다.")
+print()
+
+print("--- 정상적으로 종료되었습니다. ---")
+
+# 3번
+# a = 10+"ro"
+# int("dsad")
+# cursor.close)
+# [1,2,3,4,5][10]
