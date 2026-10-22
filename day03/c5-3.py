@@ -42,10 +42,14 @@ def print_hello() :
 call_10_items( print_hello )    #  print_hello 함수 (그자체)정보 전달 
 
 # p.323
+# map(함수, 리스트) : 리스트의 요소를 함수에 넣고 리턴된 값으로 새로운 리스트를 구성해주는 함수
+# filter(함수, 리스트) : 리스트의 요소를 함수에 넣고 리턴된 값이 True인 것으로 새로운 리스트를 구성해주는 함수
+
 # java : 리스트.stream.forEach( ), 리스트.stream.map( ), 리스트.stream.filter( )
 # react : 리스트.forEach( ) , 리스트.map( ) , 리스트.filter( )
 # python : for x in 리스트 , map( 코드 , 리스트 ) , filter( 코드 , 리스트 )
 # forEach 단순반복(return없다), map 반복+반환(return있다), filter 반복+(참이면)반환
+
 # 예제
 def power( item ) : 
     return item * item
@@ -74,3 +78,18 @@ print( list( output_a ) )
 # list_a.map( power )
 # JS 2 ---------------------------
 # list_a.map( (item)=>{ return item*item } )
+
+
+#확인문제 2
+numbers = list(range(1, 10 + 1 ))
+
+print("# 홀수만 추출하기")
+print(list(filter( lambda num : num % 2 != 0, numbers)))
+print()
+
+print("# 3 이상, 7 미만 추출하기")
+print(list(filter( lambda num : 3 <= num < 7, numbers)))
+print()
+
+print("# 제곱해서 50 미만 추출하기")
+print(list(filter( lambda num : num ** 2 < 50, numbers)))
