@@ -10,6 +10,8 @@ print( list(range(3,6))) # 3 ~ 5 -> [3, 4, 5]
 # 3. range(시작값, 끝값, 증감단계)
 print(list(range(0, 10, 2))) #0부터 9까지 2씩 증가 -> [0, 2, 4, 6, 8]
 
+print(list(range(10,-1,-1)))
+
 
 # p.233
 # for range 함수 함께 사용 -> for i in range(10) :
