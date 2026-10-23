@@ -46,6 +46,7 @@ students = [
 # p.467
 # 2. 생성자
 class Student2 :
+    
     # def __init__(self, 멤버변수1, 멤버변수2, 멤버변수3):
     #     self.멤버변수1 = 멤버변수1;
     def __init__(self, name, korean, math, english, science):
@@ -54,6 +55,24 @@ class Student2 :
         self.math = math
         self.english = english
         self.science = science
+    
+    # def 메소드명( self, 매개변수1 ) :
+    def get_sum( self ) :
+        return self.korean + self.math + self.english + self.science
+    
+    def get_average(self) :
+        return self.get_sum() / 4
+    
+    def to_string( self ) :
+        return "{} \t {} \t {}".format(self.name, self.get_sum(), self.get_average())
+
+
+# 일반 함수와 메소드 차이
+# 일반 함수는 클래스 밖에서 독립 선언, self가 없음
+# 메소드는 클래스 안에서 선언, self를 사용
+def get_sum2() :
+    pass
+
 
 # 생성자 이용한 인스턴스 생성 -> 클래스명( 인수, 인수, 인수 )
 # JAVA : Student2 s = new Student("유재석", 10, 20, 30, 40)
@@ -67,5 +86,18 @@ students = [
     Student2("윤인성", 87, 98, 88, 95)
 ]
 
+
 # 인스턴스 내 멤버변수 호출
 print( students[0].korean )
+
+print( "이름", "총점", "평균", sep="\t")
+for student in students :
+    print(student.to_string())
+
+
+'''
+    a.b - 멤버변수
+    A.B - 전역변수(Static)
+    a.b() - 메소드/함수
+    A.b() - 메소드/함수(Static)
+'''
