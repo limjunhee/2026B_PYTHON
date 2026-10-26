@@ -12,6 +12,7 @@ numbers_reversed = reversed(numbers) # 리스트 뒤집기
 print( list(numbers_reversed ) ) # 리스트 타입으로 변환하여 출력 -> [77, 32, 273, 52, 103]
 
 print(numbers_reversed) # <list_reverseiterator object at 0x0000025B69D24EE0> -> 이터레이터 출력
+next(numbers_reversed)
 # 이터러블 : 리스트, 딕셔너리처럼 내부의 요소들을 차례차례 꺼낼 수 있는 객체를 의미
 # 이터레이터 : 이터러블 중에서 하나씩 차례로 빼낼 수 있는 요소
 # 이터레이터 가능한 타입 : 리스트, 딕셔너리, 문자열, 튜플 등
