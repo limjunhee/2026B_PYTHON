@@ -47,7 +47,7 @@ print( x * y) # [4, 10, 18]
 print( x ** 2 ) # [1 4 9]
 print( x ** y ) # [1 32 729]
 print( x - 2 ) # [-1, 0, 1]
-print( np.sqrt(x) ) # 제곱근/루트
+print( np.sqrt(x) ) # 제곱근/루트 -> [1. , 1.41421356 , 1.73205081]
 print( x > 2 ) # x의 요소값이 2보다 큰지 true/false로 알려줌 -> [false, false, true]
 print( (x > 1) & ( x < 3) ) # (조건1) & (조건2) -> [False, True, False] AND
 print((x == 1) | ( x == 3)) # (조건1) | (조건2) -> [ True, False, True] OR
