@@ -5,6 +5,7 @@ import numpy as np
 data = np.genfromtxt('./day07/customer_purchase_data.csv', delimiter=',', skip_header=1) 
 # 데이터 구조 확인: [ID, Visits, Stay_Time, Cart_Items, Purchase_Amount]
 print(f"데이터 형태: {data.shape}")
+print(data.shape) # 1000, 5 -> 1000행 5열
 
 # ============================================================================== 
 # 1. 데이터 준비 및 구조 (Columns)
@@ -67,13 +68,32 @@ print(len(warning)) # 2차원 배열의 행 개수(고객 수) -> 23
 # [Step 5] 고객 등급 정규화 및 VVIP 선정
 #   - 구매 금액(`sales`) 데이터를 0과 1 사이의 값으로 정규화(Min-Max Scaling) 하세요. * 공식 : ( x - 최솟값 ) / ( 최댓값 - 최솟값 )
 #   - 정규화된 값이 0.9 이상(상위 10% 수준)인 고객을 'VVIP'로 정의하고, 해당 VVIP 고객들의 모든 정보(Row 전체)를 추출하여 출력하세요.
-
+#   - 추출된 VVIP 고객 데이터를 '구매 금액(4번 열)' 기준 내림차순(높은 금액 순)으로 정렬하여 상위 5명의 정보를 출력하세요.
 sales = np.array(data[:,4]) # 모든 고객의 구매 금액
 
-# np.where(조건, 참, 거짓)에서 조건 식만 적으면 조건에서 참이 되는 인덱스만 반환해줌 -> 참이 되는 데이터가 있는 위치 39개
-# (array([ 3, 29, 47, 57, 78, ...]),)   ← 39개의 행 번호
-vvip_idx = np.where( (sales-np.min(sales))/(np.max(sales) - np.min(sales)) >= 0.9)
+vvip_idx = (sales-np.min(sales))/(np.max(sales) - np.min(sales)) >= 0.9
+
 vvip = np.array(data[vvip_idx])
 print(vvip)
 
+vvip_sort = np.argsort( vvip[:, 4]) [::-1]
+print(vvip_sort)
+print(vvip[vvip_sort])
+vvip = vvip[vvip_sort]
+print(vvip[:5])
+
 # ==============================================================================
+x = np.array([[1,2,3],[4,5,6]])
+print(x+3) # [4 5 13] [7 8 9]
+print(x[(x+3) > 6])
+print(x[0]) # 1 2 3
+print(x[0, 1]) # 0행 1열 # 2
+print(x[0,1 :]) # [2 3]
+print( x[:,2]) # [3 6]
+y = x[0,1]
+y = 10
+print(x) # 원본이 안바뀜
+
+y2 = x[:, 2]
+y2[0] = 10
+print(x) # 원본이 바뀜
