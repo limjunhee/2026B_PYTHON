@@ -65,8 +65,10 @@ print(len(warning)) # 2차원 배열의 행 개수(고객 수) -> 23
 # [Step 5] 고객 등급 정규화 및 VVIP 선정
 #   - 구매 금액(`sales`) 데이터를 0과 1 사이의 값으로 정규화(Min-Max Scaling) 하세요. * 공식 : ( x - 최솟값 ) / ( 최댓값 - 최솟값 )
 #   - 정규화된 값이 0.9 이상(상위 10% 수준)인 고객을 'VVIP'로 정의하고, 해당 VVIP 고객들의 모든 정보(Row 전체)를 추출하여 출력하세요.
+
 sales = np.array(data[:,4]) # 모든 고객의 구매 금액
-# np.where(조건, 참, 거짓)에서 조건 식만 적으면 조건에서 참이 되는 인덱스만 반환해줌
+
+# np.where(조건, 참, 거짓)에서 조건 식만 적으면 조건에서 참이 되는 인덱스만 반환해줌 -> 참이 되는 데이터가 있는 위치 32개
 sales_scaling = np.where(( sales-np.min(sales) )/( np.max(sales) - np.min(sales) ) >= 0.9)
 vvip = np.array(data[sales_scaling])
 print(vvip)
