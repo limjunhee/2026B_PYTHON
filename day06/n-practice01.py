@@ -7,7 +7,7 @@ import numpy as np
 arr_step = np.arange(0, 19, 2)
 print(arr_step)
 
-arr_lin = np.linspace(0.0,1.0,5)
+arr_lin = np.linspace(0.0, 1.0, 5)
 print(arr_lin)
 
 # [문제 2]
