@@ -44,9 +44,9 @@ print(customers_vip[:,0])
 # [Step 3] 구매 전환율 및 효율성 계산
 #   - '구매 금액(4번 열) / 방문 횟수(1번 열)'를 계산하여 방문당 평균 매출인 `arpv` 배열을 생성하세요.
 #   - 방문당 평균 매출(`arpv`)이 가장 높은 고객의 인덱스를 찾고, 해당 고객의 '고객ID(0번 열)'를 출력하세요.
-arpv = np.array(data[:,4] / data[:,1])
+arpv = np.array( data[:,4] / data[:,1] )
 print(np.argmax(arpv)) # 516
-print(int(data[np.argmax(arpv), 0])) # 1517
+print( int(data[np.argmax(arpv), 0]) ) # 1517
 
 # ==============================================================================
 
@@ -55,8 +55,10 @@ print(int(data[np.argmax(arpv), 0])) # 1517
 #   - 조건: '방문 횟수(1번 열)가 3회 이하' 이면서(&) '장바구니 담은 횟수(3번 열)가 1회 이하'인 고객을 '이탈 위험 고객'으로 분류하세요.
 #   - 이 조건에 해당하는 고객들의 전체 데이터(행)를 추출하고, 대상 고객이 총 몇 명인지 출력하세요.
 warning = np.array(data[(data[:,1] <= 3) & (data[:,3] <= 1)])
+
 print(warning.shape) # 23, 5 (가로줄 개수, 세로줄 개수)
 print(warning.shape[0]) # 23 ( 가로줄 개수 )
+
 print(len(warning)) # 2차원 배열의 행 개수(고객 수) -> 23
 
 # ==============================================================================
@@ -68,8 +70,10 @@ print(len(warning)) # 2차원 배열의 행 개수(고객 수) -> 23
 
 sales = np.array(data[:,4]) # 모든 고객의 구매 금액
 
-# np.where(조건, 참, 거짓)에서 조건 식만 적으면 조건에서 참이 되는 인덱스만 반환해줌 -> 참이 되는 데이터가 있는 위치 32개
-sales_scaling = np.where(( sales-np.min(sales) )/( np.max(sales) - np.min(sales) ) >= 0.9)
-vvip = np.array(data[sales_scaling])
+# np.where(조건, 참, 거짓)에서 조건 식만 적으면 조건에서 참이 되는 인덱스만 반환해줌 -> 참이 되는 데이터가 있는 위치 39개
+# (array([ 3, 29, 47, 57, 78, ...]),)   ← 39개의 행 번호
+vvip_idx = np.where( (sales-np.min(sales))/(np.max(sales) - np.min(sales)) >= 0.9)
+vvip = np.array(data[vvip_idx])
 print(vvip)
+
 # ==============================================================================
