@@ -399,6 +399,71 @@ print(new_df)
 
 
 # 속성이 다른 데이터프레임끼리의 병합 -> 교집합(공통 컬럼)
+# pd.merge(df1, df2, on = '공통컬럼명', how=방향)
 df_info = pd.DataFrame({'ID': [1, 2, 3], 'Name': ['Ant', 'Bee', 'Cat']})
 df_score = pd.DataFrame({'ID': [2, 3, 4], 'Score': [88, 92, 85]})
 
+new_df = pd.merge(df_info, df_score, on = 'ID', how = 'inner')
+print(new_df)
+
+'''
+[병합 결과]
+
+   ID Name  Score
+0   2  Bee     88
+1   3  Cat     92
+'''
+
+new_df = pd.merge(df_info, df_score, on = 'ID', how = 'outer')
+print(new_df)
+'''
+[병합 결과]
+   ID Name  Score
+0   1  Ant    NaN
+1   2  Bee   88.0
+2   3  Cat   92.0
+3   4  NaN   85.0
+''' # NaN : 정의가 없는 자료
+
+
+# ========================================================================================================================================================================
+
+# 15) 정렬 - df.sort
+df = pd.DataFrame({
+  'name': ['Ant', 'Bee', 'Cat', 'Dog'],
+  'age': [27, 27, 22, 32],
+  'score': [88, 95, 85, 90]
+})
+
+# df.sort_values( by = '컬럼명' , ascending=True 오름차순 / False 내림차순)
+new_df = df.sort_values( by = 'age' , ascending = False )
+print(new_df)
+'''
+  name  age  score
+3  Dog   32     90
+0  Ant   27     88
+1  Bee   27     95
+2  Cat   22     85
+'''
+
+# 다중 정렬은 [] 리스트 사용, *age 기준으로 1차 정렬 후 동이랗ㄴ age끼리 score기준으로 2차 정렬
+new_df = df.sort_values( by = ['age', 'score'] , ascending = [True, False] )
+print(new_df)
+'''
+  name  age  score
+2  Cat   22     85
+1  Bee   27     95
+0  Ant   27     88
+3  Dog   32     90
+'''
+
+# 컬럼명도 정렬 가능
+new_df = df.sort_index( axis=1, ascending = True )
+print(new_df)
+'''
+   age name  score
+0   27  Ant     88
+1   27  Bee     95
+2   22  Cat     85
+3   32  Dog     90
+'''
