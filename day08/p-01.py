@@ -160,7 +160,7 @@ df = pd.DataFrame(
     columns= ['name', 'age', 'city'],
     index=[ 'A', 'B', 'C']
 )
-
+print(df)
 print( df.iloc[1] )
 '''
 [df.iloc[1] 출력 결과]
