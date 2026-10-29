@@ -73,13 +73,15 @@ plt.show()
 # ======================================================================================================================
 # [4] 히스토그램( 연속형 수치/값 분표 )
 
+# 평균 170을 중심으로 표준편차 5만큼 처져 있는 종모양(가우시안 분포)의 연속형 가상 데이터 1000개 무작위 생성
 heights = np.random.normal(loc=170, scale=5, size=1000)
 
+# 1) 히스토그램 -> plt.hist(값, bins="구간개수", color='색깔', edgecolor='테두리색깔', alpha="투명도")
 plt.figure(figsize=(6, 4))
 plt.hist(heights, bins=30, color='skyblue', edgecolor='black', alpha=0.7)
 plt.title('키(Height) 데이터의 정규분포 확인')
 plt.xlabel('키 (cm)')
-plt.ylabel('빈도수(Count)')
+plt.ylabel('빈도/분포 수')
 plt.grid(axis='y', linestyle=':', alpha=0.6)
 
 plt.show()
