@@ -85,3 +85,30 @@ plt.ylabel('빈도/분포 수')
 plt.grid(axis='y', linestyle=':', alpha=0.6)
 
 plt.show()
+
+# ======================================================================================================================
+# [5] 박스플롯( 분포 범위내 이상치 )
+heights = np.random.normal(loc=170, scale=5, size=1000)
+data_with_outliers = np.append(heights, [210, 215, 120])
+
+# 1)
+plt.figure(figsize=(6, 4))
+plt.boxplot(data_with_outliers, vert=True, patch_artist=True)
+plt.title('데이터 이상치(Outlier) 탐지용 Boxplot')
+plt.ylabel('값')
+plt.grid(axis='y', linestyle=':', alpha=0.6)
+plt.show()
+
+# ======================================================================================================================
+# [6] 한 창에 2개 이상 그래프 표현
+# fig, axs = plt.subplots(행 개수, 열 개수, figsize=(가로, 세로))
+fig, axs = plt.subplots(1, 2, figsize=(10, 4)) # 1줄(행) 차트 2개
+
+#1행 1열 차트, axs[인덱스].차트종류( )
+axs[0].plot( [1,2,3],[4,5,6] )
+axs[0].set_title("서브 1 : 선 그래프")
+
+#1행 2열 차트
+axs[1].bar( ['A','B','C'], [30, 15, 40] )
+axs[1].set_title("서브 2 : 막대 그래프")
+plt.show()
