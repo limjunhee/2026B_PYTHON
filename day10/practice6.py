@@ -32,9 +32,12 @@ df['Embarked'] = df['Embarked'].fillna(df['Embarked'].mode()[0]) # 승선 항구
 x = ['사망', '생존']
 y = df['Survived'].value_counts().values
 bars = plt.bar( x, y, color = ['red' , 'blue'] )
-
-print(x, y)
 plt.show()
+# =================================================================
+sns.countplot( data=df, x = "Survived")
+plt.xticks( [0, 1], ['사망', '생존'] ) # x축의 수치값을 범주값으로 변경
+plt.show()
+
 
 # 5-2 : 연령대별 상세 분석:나이에 따른 생존/사망 분포를 히스토그램으로 시각화한다.데이터의 흐름을 파악할 수 있도록 커널 밀도 추정 곡선(KDE)을 포함한다.
 # plt.hist(df[df['Survived'] == 0]["Age"], bins=10, color="red", edgecolor='black', alpha=0.7, label="사망자 수")
@@ -46,17 +49,20 @@ plt.ylabel("생존자/사망자 수")
 plt.legend(title = "범례", labels = ["생존", "사망"])
 plt.show()
 
+
 # 5-4 (성별): sns.countplot을 사용하여 성별(Sex)에 따른 생존 여부(Survived)별 인원수를 시각화한다.
 sns.countplot( data = df, x = "Sex" , hue = "Survived", palette="Set1")
 plt.title("성별에 따른 생존 여부")
 plt.legend(title = "범례", labels = ["사망", "생존"])
 plt.show()
 
+
 # 5-5 (객실 등급): sns.countplot을 사용하여 객실 등급(Pclass)에 따른 생존 여부(Survived)별 인원수를 시각화한다.
 sns.countplot( data = df, x = "Pclass" , hue = "Survived", palette="Set1")
 plt.title("이용한 객실 등급에 따른 생존 여부")
 plt.legend(title = "범례", labels = ["사망", "생존"])
 plt.show()
+
 
 # 5-6 (승선 항구): sns.countplot을 사용하여 승선 항구(Embarked)에 따른 생존 여부(Survived)별 인원수를 시각화한다.
 sns.countplot( data = df, x = "Embarked" , hue = "Survived", palette="Set1")
@@ -89,7 +95,7 @@ new_df = pd.concat( [data1, data2], axis=0, ignore_index=True)
 new_df = new_df.replace('\\N', None)
 new_df = new_df.replace('m', 'M')
 new_df = new_df.replace('f', 'F')
-new_df['성별'] = new_df['성별'].fillna( "U")
+new_df['성별'] = new_df['성별'].fillna("U")
 
 # 4-3 (형변환): 이용시간, 거리 등 주요 수치형 변수는 pd.to_numeric으로 변환하고, 날짜 데이터는 pd.to_datetime으로 객체화한다.
 
@@ -101,7 +107,6 @@ new_df['이용시간(분)'] = pd.to_numeric(new_df['이용시간(분)'])
 
 new_df['이용거리(M)'] = pd.to_numeric(new_df['이용거리(M)'])
 
-
 # 4-4 (파생변수): 대여일시에서 시간(Hour) 정보를 추출하여 '대여 시간대' 열을 새롭게 생성한다.
 new_df['대여 시간대'] = new_df['대여일시'].dt.hour
 
@@ -112,12 +117,13 @@ sns.countplot( data = new_df, x = "성별")
 plt.title("성별에 따른 따릉이 이용 비중")
 plt.show()
 # 5-2 (시간대 분석): sns.barplot을 사용하여 24시간 중 어느 시간대에 대여가 집중되는지 분석한다.
-
 sns.barplot(x = new_df['대여 시간대'].value_counts().index, y = new_df['대여 시간대'].value_counts().values)
 plt.title("따릉이 이용 시간대 집중도")
 plt.show()
+
 # 5-3 (인기 대여소): value_counts().head(10)를 활용하여 가장 활발한 상위 10개 대여소를 가로 막대 그래프로 시각화한다.
 plt.figure( figsize=( 15,4 ))
+# '가로' 막대 그래프 -> plt.barh()
 bars = plt.barh(new_df['대여 대여소명'].value_counts().head(10).index, new_df['대여 대여소명'].value_counts().head(10).values, color='blue')
 plt.bar_label( bars, padding=3, fontsize = 8)
 plt.title('가장 활발한 상위 10개 대여소')
