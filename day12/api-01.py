@@ -4,7 +4,7 @@
 import httpx
 # xmltodict란? xml을 파싱하는 라이브러라
 # 설치 : pip install xmltodict
-
+import pandas as pd
 
 # 0) 공공데이터포털 본인 인증 키
 service_key = "0f09ea9db905aeda554509024b07b553259c634233949946ad4630dd2318cc31"
@@ -15,7 +15,7 @@ def test1() :
     url = "https://api.odcloud.kr/api/15052602/v1/uddi:855807e2-fe8a-4e47-8a5a-ce1894e410d7_201909031553"
     url += "?page=1"
     url += "&perPage=147"
-    url += f"serviceKey={service_key}"
+    url += f"&serviceKey={service_key}"
 
     # 3) httpx 이용하여 통신하기
     # httpx.HTTP메소드명( 통신할 주소 )
@@ -27,3 +27,7 @@ def test1() :
     print(response_json)
 
     # 5) 판다스에 저장하기
+    df = pd.DataFrame( response_json['data']) # {"currentCount:10 , "data":[실질자료]}
+    df.info()
+
+test1()
