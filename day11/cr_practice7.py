@@ -33,25 +33,46 @@ async def run() : # 함수 정의
             await page.goto( "https://cine21.com/movie/point" )
             # 3초 대기상태
             await page.wait_for_timeout(3000)
+            # =================================================================================================================== 교수님 제공 코드
+            
+            # 여러개의 DOM을 반환
+            page_button_list = await page.query_selector_all('.pagination .page a')
+            # 반복문 3번 수행
+            for i in range(1,4) :       # 1부터 3까지 반복
+                await page_button_list[i - 1].click()     # 0 인덱스부터 a 마크업 클릭이벤트
+                await page.wait_for_timeout( 3000 )
 
-
-            for i in range(2, 5) :
-                items = await page.query_selector_all("#point_list_holder > div.list_with_upthumb.pc_col5_mo_col2 > div.list_with_upthumb_item")
-
+                items = await page.query_selector_all(".list_with_upthumb_item")
                 for item in items :
                     title = await item.query_selector(".title")
-                    title = await title.inner_text() if title else "제목 없음"
-                    img = await item.query_selector( 'img.img_thumb' )
-                    img = await img.get_attribute('src') if img else '이미지없음'
-                    score = await item.query_selector('.star_wrap.justify_center.mo_xs > .num')
-                    score = await score.inner_text() if score else "점수 없음"
+                    title = await title.inner_text() if title else "제목없음"
+                    img_link = await item.query_selector('.img_wrap>img')
+                    img_link = await img_link.get_attribute('src') if img_link else "이미지없음"
+                    score = await item.query_selector(".star_wrap > p.num")
+                    score = await score.inner_text() if score else "전문가평점없음"
+                    print(title, img_link, score)
 
-                    datas.append({"제목":title, "이미지":img, "전문가 평점":score})
+                    datas.append({"제목":title, "이미지링크":img_link, "전문가 평점":score})
 
-                next_page = await page.query_selector(f'div.pagination > div.page > a[href="javascript:fetch_point_list({i})"]')
-                await next_page.click()
-                await page.wait_for_timeout(3000)
-                
+            # =================================================================================================================== 직접 한 방식
+            # for i in range(2, 5) :
+            #     items = await page.query_selector_all("#point_list_holder > div.list_with_upthumb.pc_col5_mo_col2 > div.list_with_upthumb_item")
+
+            #     for item in items :
+            #         title = await item.query_selector(".title")
+            #         title = await title.inner_text() if title else "제목 없음"
+            #         img = await item.query_selector( 'img.img_thumb' )
+            #         img = await img.get_attribute('src') if img else '이미지없음'
+            #         score = await item.query_selector('.star_wrap.justify_center.mo_xs > .num')
+            #         score = await score.inner_text() if score else "점수없음"
+
+            #         datas.append({"제목":title, "이미지링크":img, "전문가 평점":score})
+
+            #     next_page = await page.query_selector(f'div.pagination > div.page > a[href="javascript:fetch_point_list({i})"]')
+            #     await next_page.click()
+            #     await page.wait_for_timeout(3000)
+            # ===================================================================================================================
+   
             print(datas)
             await browser.close()
 
