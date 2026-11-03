@@ -31,3 +31,36 @@ def test1() :
     df.info()
 
 test1()
+
+# 2) 공공데이터포털 xml 형식의 자료 요청
+import xmltodict #xml 변환 라이브러리
+def test2() :
+    url = "https://apis.data.go.kr/B552657/ErmctInsttInfoInqireService/getParmacyFullDown?"
+    url += f"serviceKey={service_key}"
+    url += "&pageNo=1&numOfRows=100"
+
+    # 2. httpx 이용한 api 요청
+    response = httpx.get(url)
+
+    # 3. 요청
+    response_dict = xmltodict.parse(response.text)
+    # print(response_dict)
+
+    # 4. <response> -> <body> -> <items> -> <item>
+    df = pd.DataFrame( response_dict['response']['body']['items']["item"])
+    df.info()
+test2()
+
+
+
+'''
+[xml 파일 형태]
+<response>
+    <body>
+        <items>
+            <item>
+            </item>
+        </items
+    <body>
+</response>
+'''
