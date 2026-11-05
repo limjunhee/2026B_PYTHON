@@ -53,7 +53,7 @@ from sklearn.metrics import r2_score
 y_pred = model.predict(x_test_poly) # 테스트용 다항 특성으로 예측
 print('r2 :', r2_score(y_test, y_pred)) # r2 : 0.9719372415762598
 
-# 3] 다항의 차수 늘리기 , degree = 10 , (차수N) 제곱까지 항 추가하기/생략시 2
+# [3] 다항의 차수 늘리기 , degree = 10 , (차수N) 제곱까지 항 추가하기/생략시 2
 poly = PolynomialFeatures( include_bias= False , degree= 10 )
 poly.fit( x_train )
 x_train_poly2 = poly.transform( x_train )
@@ -69,3 +69,44 @@ print( 'r2 : ' , r2_score( y_test , y_pred ) ) # r2_score( 정답지 , 예측값
 # r2 :  0.07276663213888512
 # *] 모델 구현 에서 다양한 속성값( degree= N ) 들을 테스트 하여 설계/구현 한다.
 # *] 특성이 너무 많아지면 훈련 데이터가 과하게 집학하여 과대적합이 발생하여 점수가 낮아 진다.
+
+
+# [4] 특성이 많아짐에 따라 특성간의 단위 표준화 (0~1)
+from sklearn.preprocessing import StandardScaler
+ss = StandardScaler() # 객체 생성
+ss.fit(x_train_poly) # 항이 추가된 특성으로 표준화
+x_train_scaled = ss.transform( x_train_poly )
+x_test_scaled = ss.transform( x_test_poly )
+print( x_train_poly[0] ) # [ 16.2          4.5924       ~~
+print( x_train_scaled[0] ) # [-1.14878727 -1.06273398 -1.10441696  ~~
+# 원본이 평균보다 작으면 음수, 
+
+# [5] 규제: 기울기(가중치) 크기에 페널티를 부여하여 특성 오차 확인하여 특성 제외
+
+# 1) 릿지
+from sklearn.linear_model import Ridge
+# ※ alpha(규제강도) : 값이 커질수록 가중치/기울기를 0에 가깝게 규제: 완만
+#반복하여 최적의 규제 강도 찾기
+alpha_list = [0.001, 0.01, 0.1, 1, 10, 100]
+for alpha in alpha_list :
+    model = Ridge( alpha=alpha )# 강도 설정하여 릿지 모델 객체 생성
+    model.fit( x_train_scaled, y_train ) # 학습
+    #훈련데이터 점수와 테스트용 점수 격차 적은 alpha 찾기
+    print(" --- 훈련용 학습 데이터 점수 vs 테스트용 학습 데이터 점수 --- ")
+    print("Train R2: ", model.score(x_train_scaled, y_train))
+    print("Test R2: ", model.score(x_test_scaled, y_test)) # alpha가 10이였을때 점수 격차가 가장 작다.
+
+# 2) 라쏘 모델
+from sklearn.linear_model import Lasso
+lasso = Lasso( alpha=10) # 임의의 강도 지정 라쏘 모델 객체 생성
+lasso.fit( x_train_scaled, y_train )
+print( lasso.score( x_train_scaled, y_train) )
+print( lasso.score( x_test_scaled, y_test) )
+
+# 제거된 특성
+import numpy as np
+zero_features = np.sum( lasso.coef_ == 0)
+print( '기울기 0으로 제거된 특성 수 :', zero_features)
+
+# 특성이 적으면(과소적합/모델 단순) --> 특징을 찾기가 어렵다. PolynomialFeatures를 이용한 항 추가 할것 / degree
+# 특성이 많으면(과대적합/모델 복잡) --> 규제(L1라쏘, L2릿지) / alpha
