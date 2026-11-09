@@ -23,6 +23,9 @@
 import httpx
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
+plt.rc( 'font' , family = 'Malgun Gothic') # 윈도우 맑은고딕으로 변경
+plt.rcParams['axes.unicode_minus'] = False # 음수 기호 깨짐 방지
 # 내 인증키
 service_key = "0f09ea9db905aeda554509024b07b553259c634233949946ad4630dd2318cc31"
 
@@ -46,7 +49,7 @@ def practice8() :
 
     new_df = df.groupby('업종')['가격1'].mean()
 
-    sns.barplot
-
+    sns.barplot(data=new_df)
+    plt.show()
     
 practice8()
