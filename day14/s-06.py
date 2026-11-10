@@ -30,6 +30,12 @@ print(Y_pred) # ['Bream' 'Bream' 'Smelt' 'Bream' 'Bream' 'Smelt' 'Smelt' 'Bream'
 # 5) 결과 속성
 print(model.classes_) # 정답지 종류 -> ['Bream' 'Smelt']
 print(model.predict_proba(X_train_scaled[:3])) # 확률 반환
-# [[0.99396167 0.00603833]      # Bream(1열) , Smelt(2열)
+# [[0.99396167 0.00603833]      # Bream(0열) , Smelt(1열)
 #  [0.03311198 0.96688802]
 #  [0.98732805 0.01267195]]
+
+
+# 6) 정확도 평가 :
+from sklearn.metrics import accuracy_score
+acc = accuracy_score( Y_test, Y_pred ) # 진짜 정답과 예측을 넣어서 정확도 측정
+print(acc) # 1.0 -> 100%, 데이터가 적어서 그럼, 현실적으로는 1이 나올 수 없다
