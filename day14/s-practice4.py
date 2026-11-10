@@ -46,8 +46,9 @@ df = df.drop(columns=['id'])
 df = df.dropna(axis=1, how='all') # Unnamed: 32 등 모든 값이 NaN인 열을 자동으로 날립니다.
 
 # M → 1 / B → 0 변환
-df['diagnosis'] = df['diagnosis'].str.strip().replace('M', 1)
-df['diagnosis'] = df['diagnosis'].str.strip().replace('B', 0)
+df['diagnosis'] = df['diagnosis'].replace('M', 1)
+df['diagnosis'] = df['diagnosis'].replace('B', 0)
+df['diagnosis'] = df['diagnosis'].astype(int)
 
 # 종속 변수(문자열 'M', 'B' 유지) 및 독립 변수 분리
 Y = df['diagnosis']
@@ -70,6 +71,17 @@ X_test_scaled = ss.transform(X_test)
 from sklearn.linear_model import LogisticRegression
 model = LogisticRegression()
 model.fit( X_train_scaled, Y_train )
+Y_pred = model.predict(X_test_scaled)
 
 # [단계 5] 모델 평가 및 분류 정확도(Accuracy_score)를 출력
-print(model.classes_)
+from sklearn.metrics import accuracy_score
+acc = accuracy_score( Y_test, Y_pred )
+print(acc) # 0.9649122807017544
+
+# [단계 6] 샘플 데이터 예측 및 예측 확률 확인
+print(model.predict(X_test_scaled[:3])) # [0 1 0]
+
+print(model.predict_proba(X_test_scaled[:3]))
+# [[9.99635432e-01 3.64568116e-04]
+#  [1.07465986e-08 9.99999989e-01]
+#  [9.57432053e-01 4.25679471e-02]]
