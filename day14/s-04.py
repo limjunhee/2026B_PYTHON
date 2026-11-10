@@ -47,6 +47,7 @@ pipe_model.fit( X_train , Y_train )
 print( 'r2 : ' , pipe_model.score( X_train , Y_train )) # r2 :  0.9833194466740022
 print( 'r2 : ' , pipe_model.score( X_test , Y_test )) # r2 :  0.971937241576259
 
+
 # 10) 최적(성능이 좋은/오차가 적음) 파라미터(매개변수 -> 대입 값) 탐색 ★
 # degree = 2, alpha=0.01
 # 1. 파이프라인 만들기
@@ -85,3 +86,15 @@ print(grid.best_score_) # 교차 검증에서 평균 점수 반환
 # 7. 최적 모델로 평가
 print('r2 : ', best_model.score(X_train, Y_train))
 print('r2 : ', best_model.score(X_test, Y_test))
+# r2 :  0.9819643609322334
+# r2 :  0.972113634559702
+
+
+# 11) 서빙, 학습된 모델 저장하고 다른 곳에서 호출
+# 연구/학습 : 코랩(고사양)에서 학습 --> 실제 서버(FAST API)에서 호출
+# 실무: GPU서버 학습 --> 실제 서버에서 호출
+import joblib
+# 1. 모델 저장하기
+# joblib.dump( 저장할모델, 경로)
+joblib.dump( best_model, './day14/fish_model.pkl')
+# 2. 다른 파이썬 파일에서 저장된 모델 불러오기 -> s-05.py
