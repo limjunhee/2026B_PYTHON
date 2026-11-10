@@ -4,7 +4,7 @@ X = df[ [ 'Length2' , 'Height', 'Width' ] ]# 2)  특성 선정/구성
 Y = df[ 'Weight'] # 2) 타깃(정답) 선정/구성
 
 # 3) 훈련/테스트 분리 , 8:2 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import GridSearchCV, KFold, train_test_split
 X_train,X_test,Y_train,Y_test = train_test_split( X, Y, test_size=0.2, random_state=42 )
 
 # 4) 과소적합 방지 하고자 항 추가 PolynomialFeatures # 제곱 / 곱셈 
@@ -22,7 +22,7 @@ X_train_scaled = ss.transform( X_train_poly )
 X_test_scaled = ss.transform( X_test_poly )
 
 # 6) 모델 선택 = 단순선형회귀, 규제( 릿지 / 라쏘 ) alpha규제강도
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge
 model = LinearRegression()
 model.fit( X_train_scaled , Y_train )
 
@@ -44,5 +44,44 @@ pipe_model = Pipeline( [
 
 # 9) 파이프라인 으로 학습 
 pipe_model.fit( X_train , Y_train )
-print( 'r2 : ' , pipe_model.score( X_train_scaled , Y_train ))
-print( 'r2 : ' , pipe_model.score( X_test_scaled , Y_test ))
+print( 'r2 : ' , pipe_model.score( X_train , Y_train )) # r2 :  0.9833194466740022
+print( 'r2 : ' , pipe_model.score( X_test , Y_test )) # r2 :  0.971937241576259
+
+# 10) 최적(성능이 좋은/오차가 적음) 파라미터(매개변수 -> 대입 값) 탐색 ★
+# degree = 2, alpha=0.01
+# 1. 파이프라인 만들기
+pipe_model = Pipeline([
+    ( 'poly', PolynomialFeatures( include_bias=False ) ), # degree 튜닝
+    ( 'scaler', StandardScaler() ),
+    ( 'ridge', Ridge() ) # alpha 튜닝
+])
+
+# 2. 후보군 파라미터 만들기 { '식별자__파라미터명' : [ 후보값, 후보값 ] }
+# 식별자 -> 54줄에 있는 문자열 부분과 일치할 것
+param_grid = { 'poly__degree' : [ 2, 3 ], 'ridge__alpha' : [0.001, 0.01, 0.1, 1, 10, 100] }
+
+# 3. k-fold 교차 검증
+# Kfold(n_splits=k개의 동일한 폴드로 분할, shuffle=분할 시 무작위 섞기, random_state=42)
+kf = KFold( n_splits=5, shuffle=True, random_state=42 )
+# 학습 데이터들을 5개로 나누어 4개로 학습하고 1개로 검증 = 평균 오차/손실 성능
+
+# 4. 그리드서치 CV : 교차 검증과 다양한 파라미터로 자동으로 실행하고 최적 성능 찾아줌
+grid = GridSearchCV(
+    estimator=pipe_model, # 미리 만들어둔 파이프라인
+    param_grid=param_grid,
+    scoring='r2',
+    cv=kf,
+    n_jobs=-1
+) # 총 60번의 학습 진행 -> 'poly__degree' 개수=2 * 'ridge__alpha' 개수=6 * n_splits=5
+
+# 5. 그리드서치로 학습
+grid.fit(X_train, Y_train)
+
+# 6. 주요 속성
+best_model = grid.best_estimator_ # 가장 성능좋은 모델 반환
+print(grid.best_params_) # 가장 성능 좋은 파라미터 조합 반환
+print(grid.best_score_) # 교차 검증에서 평균 점수 반환
+
+# 7. 최적 모델로 평가
+print('r2 : ', best_model.score(X_train, Y_train))
+print('r2 : ', best_model.score(X_test, Y_test))
