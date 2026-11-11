@@ -74,7 +74,7 @@ cv = StratifiedKFold( n_splits=5, shuffle=True, random_state=42 )
 
 # 그리드서치
 from sklearn.model_selection import GridSearchCV
-grid = GridSearchCV( pipe, param_grid, cv, scoring="f1", n_jobs=-1 )
+grid = GridSearchCV( pipe, param_grid, cv=cv, scoring="f1", n_jobs=-1 )
 grid.fit( X_train, Y_train )
 print( grid.best_params_ ) # 최적의 파라미터
 print( grid.best_score_ ) # 최고의 f1 점수
