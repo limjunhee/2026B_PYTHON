@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>따릉이 수요 예측</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- axios : 비동기 통신 라이브러리 -->
+  <script src="https://cdn.jsdelivr.net/npm/axios@1.7.9/dist/axios.min.js"></script>
+  <style>
+    :root {
+      --bg: #f2f6f3;
+      --card: #ffffff;
+      --text: #1a2a22;
+      --muted: #687a70;
+      --line: #dfe8e2;
+      --primary: #1f9d55;
+      --primary-soft: #e2f4e9;
+      --blue: #2d7dd2;
+      --blue-soft: #e4effa;
+      --warn: #e08a1e;
+      --warn-soft: #fcf0de;
+      --danger: #d64545;
+      --shadow: 0 6px 24px rgba(20, 50, 30, 0.07);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101713;
+        --card: #18221c;
+        --text: #e5eee8;
+        --muted: #8ea398;
+        --line: #26352c;
+        --primary: #3cc275;
+        --primary-soft: #173326;
+        --blue: #5aa2ec;
+        --blue-soft: #172b40;
+        --warn: #f0a443;
+        --warn-soft: #3a2b16;
+        --danger: #ef6b6b;
+        --shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 32px 16px 48px;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; }
+
+    /* 헤더 */
+    header { margin-bottom: 24px; }
+    header .tag {
+      display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .5px;
+      color: var(--primary); background: var(--primary-soft);
+      padding: 4px 10px; border-radius: 999px; margin-bottom: 10px;
+    }
+    header h1 { font-size: 28px; font-weight: 900; }
+    header p { color: var(--muted); margin-top: 4px; }
+
+    /* 레이아웃 */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+      padding: 24px; box-shadow: var(--shadow);
+    }
+    .card h2 { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+
+    /* 빠른 입력(프리셋) */
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .presets button {
+      font-family: inherit; font-size: 13px; padding: 6px 12px; cursor: pointer;
+      border: 1px solid var(--line); border-radius: 999px;
+      background: var(--bg); color: var(--text); transition: .15s;
+    }
+    .presets button:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* 폼 */
+    .field { margin-bottom: 16px; }
+    .field > label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    .row > *, .row3 > * { min-width: 0; }
+    input[type=number], input[type=date], select {
+      width: 100%; padding: 11px 12px; font-size: 15px; font-family: inherit;
+      color: var(--text); background: var(--bg);
+      border: 1px solid var(--line); border-radius: 10px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+    .day-info { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+
+    /* 라디오 -> 토글 버튼 */
+    .seg { display: flex; gap: 8px; }
+    .seg input { display: none; }
+    .seg label {
+      flex: 1; text-align: center; padding: 10px 0; font-size: 14px; cursor: pointer;
+      border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+      color: var(--muted); transition: .15s;
+    }
+    .seg input:checked + label {
+      border-color: var(--primary); background: var(--primary-soft);
+      color: var(--primary); font-weight: 700;
+    }
+
+    button.submit {
+      width: 100%; padding: 14px; margin-top: 6px; font-size: 16px; font-weight: 700;
+      font-family: inherit; color: #fff; background: var(--primary);
+      border: none; border-radius: 12px; cursor: pointer; transition: .15s;
+    }
+    button.submit:hover { filter: brightness(1.08); }
+    button.submit:disabled { opacity: .6; cursor: wait; }
+
+    /* 결과 */
+    .empty { color: var(--muted); text-align: center; padding: 70px 0; }
+    .empty .icon { font-size: 40px; margin-bottom: 8px; }
+    .price-label { font-size: 14px; color: var(--muted); }
+    .price { font-size: 48px; font-weight: 900; color: var(--primary); line-height: 1.2; margin: 4px 0; }
+    .price small { font-size: 18px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+    .level {
+      display: inline-block; margin-top: 4px; padding: 4px 12px; border-radius: 999px;
+      font-size: 13px; font-weight: 700;
+    }
+    .level.low { background: var(--blue-soft); color: var(--blue); }
+    .level.mid { background: var(--primary-soft); color: var(--primary); }
+    .level.high { background: var(--warn-soft); color: var(--warn); }
+    .summary { margin-top: 16px; font-size: 13px; color: var(--muted); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip {
+      font-size: 12px; padding: 4px 10px; border-radius: 999px;
+      background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+    }
+    .chip.on { background: var(--primary-soft); border-color: transparent; color: var(--primary); font-weight: 700; }
+    .chip.rain { background: var(--blue-soft); border-color: transparent; color: var(--blue); font-weight: 700; }
+
+    .metric { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
+    .metric-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .metric-head span { font-size: 14px; color: var(--muted); }
+    .metric-head b { font-size: 22px; }
+    .bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+    .bar > div { height: 100%; width: 0; background: var(--primary); border-radius: 999px; transition: width .8s ease; }
+    .bar.gray > div { background: var(--muted); opacity: .6; }
+
+    /* 모델 정보 */
+    .model-info { margin-top: 20px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 500; font-size: 13px; }
+    tr.best td { color: var(--primary); font-weight: 700; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    .error { margin-top: 12px; color: var(--danger); font-size: 14px; }
+
+    @media (max-width: 760px) {
+      .grid, .info-grid { grid-template-columns: 1fr; }
+      .row3 { grid-template-columns: 1fr 1fr; }
+      header h1 { font-size: 23px; }
+      .price { font-size: 40px; }
+    }
+    @media (max-width: 480px) {
+      .row, .row3 { grid-template-columns: 1fr; }
+      .card { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="tag">MACHINE LEARNING · REGRESSION</span>
+      <h1>🚲 서울 따릉이 대여 수요 예측</h1>
+      <p>날짜, 시간, 날씨를 입력하면 학습된 회귀 모델이 시간당 따릉이 대여 수를 예측합니다.</p>
+    </header>
+
+    <div class="grid">
+      <!-- ========== 입력 폼 ========== -->
+      <form class="card" id="predictForm">
+        <h2>📝 조건 입력</h2>
+
+        <div class="presets">
+          <button type="button" data-preset="summer">☀ 여름 퇴근길</button>
+          <button type="button" data-preset="rain">🌧 비 오는 출근길</button>
+          <button type="button" data-preset="spring">🌸 봄 주말 오후</button>
+          <button type="button" data-preset="winter">❄ 눈 쌓인 출근길</button>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="date">날짜</label>
+            <input type="date" id="date" value="2018-07-12" required>
+            <div class="day-info" id="dayInfo"></div>
+          </div>
+          <div class="field">
+            <label for="hour">시간</label>
+            <select id="hour"></select>
+            <div class="hint">요일 · 계절은 날짜로 자동 계산</div>
+          </div>
+        </div>
+
+        <div class="row3">
+          <div class="field">
+            <label for="temp">기온 (°C)</label>
+            <input type="number" id="temp" step="0.1" min="-20" max="40" value="27" required>
+          </div>
+          <div class="field">
+            <label for="humidity">습도 (%)</label>
+            <input type="number" id="humidity" min="0" max="100" value="55" required>
+          </div>
+          <div class="field">
+            <label for="wind">풍속 (m/s)</label>
+            <input type="number" id="wind" step="0.1" min="0" max="8" value="2" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="rainfall">강수량 (mm)</label>
+            <input type="number" id="rainfall" step="0.1" min="0" max="40" value="0" required>
+          </div>
+          <div class="field">
+            <label for="snowfall">적설량 (cm)</label>
+            <input type="number" id="snowfall" step="0.1" min="0" max="8.8" value="0" required>
+            <div class="hint">학습 데이터 최대 8.8cm</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>공휴일 여부</label>
+          <div class="seg">
+            <input type="radio" name="holiday" id="holN" value="No Holiday" checked><label for="holN">공휴일 아님</label>
+            <input type="radio" name="holiday" id="holY" value="Holiday"><label for="holY">공휴일</label>
+          </div>
+        </div>
+
+        <button type="submit" class="submit" id="submitBtn">예측하기</button>
+        <div class="error" id="errorBox"></div>
+      </form>
+
+      <!-- ========== 예측 결과 ========== -->
+      <div class="card">
+        <h2>📊 예측 결과</h2>
+        <div class="empty" id="emptyBox">
+          <div class="icon">🔍</div>
+          조건을 입력하고 <b>예측하기</b>를 눌러주세요.
+        </div>
+
+        <div id="resultBox" style="display:none">
+          <div class="price-label">예상 시간당 대여 수</div>
+          <div class="price"><span id="price">0</span><small>대</small></div>
+          <span class="level" id="level"></span>
+
+          <div class="chips" id="derivedChips"></div>
+          <div class="summary" id="summary"></div>
+
+          <div class="metric">
+            <div class="metric-head">
+              <span>모델 성능 · 결정계수 R² (테스트 데이터)</span>
+              <b id="r2">-</b>
+            </div>
+            <div class="bar"><div id="r2Bar"></div></div>
+            <div class="chips">
+              <span class="chip" id="modelChip">모델 -</span>
+              <span class="chip" id="paramChip">파라미터 -</span>
+            </div>
+            <p class="note">※ 선형 모델 특성상 음수가 예측되면 0대로 표시합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 모델 정보 (페이지 로드 시 /api/metrics) ========== -->
+    <div class="card model-info">
+      <h2>🧠 모델 정보</h2>
+      <div class="info-grid">
+        <div>
+          <table>
+            <thead><tr><th>구분</th><th>사용 특성</th></tr></thead>
+            <tbody>
+              <tr><td>수치형</td><td>기온, 습도, 풍속, 강수량, 적설량</td></tr>
+              <tr><td>파생변수</td><td>주말 여부(weekend), 비 여부(rain), 눈 여부(snow)</td></tr>
+              <tr><td>범주형</td><td>시간(0~23시), 계절, 공휴일</td></tr>
+            </tbody>
+          </table>
+          <p class="note">
+            수치형은 StandardScaler, 범주형은 OneHotEncoder 로 전처리합니다.<br>
+            요일·주말·계절·비 여부는 입력한 날짜와 강수량으로 서버에서 자동 계산합니다.
+          </p>
+        </div>
+        <div>
+          <table>
+            <thead><tr><th>모델</th><th>최적 파라미터</th><th>교차검증 R²</th></tr></thead>
+            <tbody id="compareBody"><tr><td colspan="3">불러오는 중...</td></tr></tbody>
+          </table>
+          <p class="note">
+            GridSearchCV (KFold 5) 로 3개 모델을 비교하여 교차검증 R²가 가장 높은 모델을 선택했습니다.<br>
+            데이터 : 서울시 따릉이 대여 기록 + 기상 정보 (2017.12 ~ 2018.11, 8,465시간)
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];   // JS getDay() 는 0 = 일요일
+    const SEASON_KO = { Spring: '봄', Summer: '여름', Autumn: '가을', Winter: '겨울' };
+
+    // ---------- 시간 선택지 0~23시 ----------
+    for (let h = 0; h < 24; h++) {
+      const opt = document.createElement('option');
+      opt.value = h;
+      opt.textContent = h + '시';
+      if (h === 18) opt.selected = true;
+      $('#hour').appendChild(opt);
+    }
+
+    // ---------- 날짜 -> 요일 / 주말 / 계절 미리보기 (서버와 같은 기준) ----------
+    function seasonOf(month) {
+      if (month >= 3 && month <= 5) return 'Spring';
+      if (month >= 6 && month <= 8) return 'Summer';
+      if (month >= 9 && month <= 11) return 'Autumn';
+      return 'Winter';
+    }
+    function updateDayInfo() {
+      const v = $('#date').value;
+      if (!v) { $('#dayInfo').innerHTML = ''; return; }
+      const d = new Date(v + 'T00:00:00');
+      const day = d.getDay();
+      const weekend = (day === 0 || day === 6);
+      $('#dayInfo').innerHTML =
+        `<span class="chip">${WEEKDAYS[day]}요일</span>` +
+        `<span class="chip ${weekend ? 'on' : ''}">${weekend ? '주말' : '평일'}</span>` +
+        `<span class="chip">${SEASON_KO[seasonOf(d.getMonth() + 1)]}</span>`;
+    }
+    $('#date').addEventListener('input', updateDayInfo);
+    updateDayInfo();
+
+    // ---------- 빠른 입력(프리셋) ----------
+    const PRESETS = {
+      summer: { date: '2018-07-12', hour: 18, temp: 27, humidity: 55, wind: 2, rainfall: 0, snowfall: 0, holiday: 'No Holiday' },
+      rain:   { date: '2018-06-28', hour: 8,  temp: 22, humidity: 95, wind: 1.5, rainfall: 6, snowfall: 0, holiday: 'No Holiday' },
+      spring: { date: '2018-04-14', hour: 15, temp: 19, humidity: 40, wind: 2.5, rainfall: 0, snowfall: 0, holiday: 'No Holiday' },
+      winter: { date: '2018-01-15', hour: 8,  temp: -8, humidity: 40, wind: 1.2, rainfall: 0, snowfall: 5, holiday: 'No Holiday' }
+    };
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const p = PRESETS[btn.dataset.preset];
+        ['date', 'hour', 'temp', 'humidity', 'wind', 'rainfall', 'snowfall'].forEach(k => { $('#' + k).value = p[k]; });
+        $(p.holiday === 'Holiday' ? '#holY' : '#holN').checked = true;
+        updateDayInfo();
+        $('#predictForm').requestSubmit();     // 바로 예측
+      });
+    });
+
+    // ---------- 예측 요청 ----------
+    $('#predictForm').addEventListener('submit', async (e) => {
+      e.preventDefault();                       // 폼 기본 제출(새로고침) 막기
+      $('#errorBox').textContent = '';
+
+      // 1) 입력값 -> 서버 입력 규격(JSON)
+      const data = {
+        date: $('#date').value,
+        hour: Number($('#hour').value),
+        temp: Number($('#temp').value),
+        humidity: Number($('#humidity').value),
+        wind: Number($('#wind').value),
+        rainfall: Number($('#rainfall').value),
+        snowfall: Number($('#snowfall').value),
+        holiday: document.querySelector('input[name=holiday]:checked').value
+      };
+
+      const btn = $('#submitBtn');
+      btn.disabled = true;
+      btn.textContent = '예측 중...';
+      try {
+        // 2) axios 비동기 통신 -> FastAPI
+        const response = await axios.post('/api/predict', data);
+        renderResult(data, response.data);
+      } catch (err) {
+        const detail = err.response && err.response.data && err.response.data.detail;
+        $('#errorBox').textContent = '예측 실패 : ' + (detail || err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '예측하기';
+      }
+    });
+
+    // ---------- 결과 렌더링 ----------
+    function renderResult(input, result) {
+      $('#emptyBox').style.display = 'none';
+      $('#resultBox').style.display = 'block';
+
+      // 예측값
+      $('#price').textContent = result.prediction.toLocaleString('ko-KR');
+
+      // 수요 수준 (전체 평균 약 730대 기준)
+      const n = result.prediction;
+      const level = $('#level');
+      if (n < 300)       { level.className = 'level low';  level.textContent = '한산 · 수요 낮음'; }
+      else if (n < 1000) { level.className = 'level mid';  level.textContent = '보통 수요'; }
+      else               { level.className = 'level high'; level.textContent = '혼잡 · 수요 높음'; }
+
+      // 서버가 자동 계산한 파생 정보
+      $('#derivedChips').innerHTML =
+        `<span class="chip">${result.weekday}요일</span>` +
+        `<span class="chip ${result.weekend ? 'on' : ''}">${result.weekend ? '주말' : '평일'}</span>` +
+        `<span class="chip">${SEASON_KO[result.season]}</span>` +
+        `<span class="chip ${result.rain ? 'rain' : ''}">${result.rain ? '비 옴' : '비 안 옴'}</span>` +
+        `<span class="chip ${result.snow ? 'rain' : ''}">${result.snow ? '눈 쌓임' : '눈 없음'}</span>`;
+
+      $('#summary').textContent =
+        `입력 : ${input.date} ${input.hour}시 · 기온 ${input.temp}°C · 습도 ${input.humidity}% · 풍속 ${input.wind}m/s · ` +
+        `강수 ${input.rainfall}mm · 적설 ${input.snowfall}cm · ${input.holiday === 'Holiday' ? '공휴일' : '공휴일 아님'}`;
+
+      // 성능 지표
+      $('#r2').textContent = result.r2.toFixed(4);
+      $('#r2Bar').style.width = '0';
+      setTimeout(() => { $('#r2Bar').style.width = (result.r2 * 100) + '%'; }, 50);
+      $('#modelChip').textContent = '모델 ' + result.model_name;
+      $('#paramChip').textContent = '파라미터 ' + formatParams(result.best_params);
+    }
+
+    function formatParams(params) {
+      const keys = Object.keys(params);
+      if (keys.length === 0) return '없음';
+      return keys.map(k => k.replace('model__', '') + '=' + params[k]).join(', ');
+    }
+
+    // ---------- 페이지 로드 시 모델 정보 ----------
+    async function loadMetrics() {
+      try {
+        const { data } = await axios.get('/api/metrics');
+
+        // 3개 모델 비교표
+        $('#compareBody').innerHTML = data.comparison.map(m => `
+          <tr class="${m.model_name === data.model_name ? 'best' : ''}">
+            <td>${m.model_name}${m.model_name === data.model_name ? ' ✔' : ''}</td>
+            <td>${formatParams(m.best_params)}</td>
+            <td>${m.cv_r2.toFixed(6)}</td>
+          </tr>`).join('');
+      } catch (err) {
+        $('#compareBody').innerHTML = '<tr><td colspan="3">모델 정보를 불러오지 못했습니다.</td></tr>';
+      }
+    }
+    loadMetrics();
+  </script>
+</body>
+</html>

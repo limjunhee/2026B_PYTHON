@@ -28,3 +28,8 @@ async def update(item:dict) :
 
 # http://127.0.0.1:8080/api/update 에 접속 후
 # { "id": 3, "name":"맛있는환타", "price":1400 }
+
+# 4) 삭제
+@router.delete("/delete")
+async def delete(id:int) :
+    return item_service.delete(id)
