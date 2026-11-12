@@ -10,7 +10,7 @@ import uvicorn
 app = FastAPI()
 
 if __name__ == "__main__":
-    uvicorn.run("f-02:app", host="127.0.0.1", port=8080, reload=True)
+    uvicorn.run("AppStart:app", host="127.0.0.1", port=8080, reload=True)
 
 # 2) 컨트롤러에 라우터 연결
 import Controller # import 파일명 -> (./day16/Controller.py)
