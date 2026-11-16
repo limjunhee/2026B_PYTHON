@@ -14,10 +14,10 @@ X_train, X_test, Y_train, Y_test = train_test_split(
 from lightgbm import LGBMClassifier # 0레드 / 1 화이트 ->> 와인 종류 분류
 model = LGBMClassifier(
     # 다양한 매개변수 설정
-    n_estimators = 100,      # 추정기(몇 번 학습을 할 것인가, 기본값 100이며 보통 1000~3000 설정)
+    n_estimators = 1000,      # 추정기(몇 번 학습을 할 것인가, 기본값 100이며 보통 1000~3000 설정)
     learning_rate=0.05,      # 학습률(각 트리의 축소 비율), 기본값 0.1 -> 0.05만큼의 가중치(기울기)만큼 이전 트리의 오차를 보완하는 학습 보폭 설정
     num_leaves=15,           # 하나의 트리(모델)가 가질 수 있는 최대 리프 노드 수( 성능결정, 과적합 억제하는 1순위 튜닝 변수 )
-    max_depth=6,             # 하나의 트리 최대 깊이, 특정 가지만 비정상적으로 깊어지는 것을 방지. 기본값 -1(무제한)
+    max_depth=10,             # 하나의 트리 최대 깊이, 특정 가지만 비정상적으로 깊어지는 것을 방지. 기본값 -1(무제한)
     min_child_samples=20,    # 리프 노드의 최소 샘플 수( 과적합 방지용 ), 기본값 20
     subsample=0.8,           # 매 트리 학습마다 랜덤으로 선정된 80%의 데이터만 가지고 학습하겠다
     subsample_freq=1,        # subsample을 몇 번의 트리마다 실행할지 결정(0이면 subsample 설정해도 작동 X)
@@ -37,3 +37,32 @@ model.fit( X_train, Y_train,
         eval_set=[ ( X_test, Y_test ) ],
         callbacks=[ early_stopping( stopping_rounds=50, verbose=False) ]
 )
+
+# 3) 주요 속성 확인
+print(model._best_iteration)        # 최적의 트리 반복 수/번호      # 100
+best = model.best_iteration_
+
+print(model.feature_name_)          # 각 특성의 이름                # ['alcohol', 'sugar', 'pH']
+print(model.feature_importances_)   # 각 특성의 중요도              # [138 824 438]
+
+# 4) 평가지표
+from sklearn.metrics import f1_score
+Y_pred = model.predict(X_test)
+print(model.score(X_train, Y_train))                
+print(model.score(X_test, Y_test))
+print(f1_score(Y_test, Y_pred, average='macro'))    
+# 0.8537617856455647
+# 0.8353846153846154 # 학습 -> 테스트 -> 0.03 -> 3%(10% 아래로 과적합 억제)
+# 0.8031590774656059
+
+
+# 만약 max_depth=6 -> 10이 된다면? 파라미터 수정 시 성능 떨어짐
+# 0.8864729651722147
+# 0.8530769230769231
+# 0.8197484027443542
+
+# 5) 예측하기
+new_wine = pd.DataFrame([ [11.5, 2.3, 3.1], [13.8, 11.2, 3.3] ])
+new_pred = model.predict( new_wine )
+print('예측 1:', new_pred[0])   # 예측 1: 0.0 ->> 레드 와인
+print('예측 2:', new_pred[1])   # 예측 2: 1.0 ->> 화이트 와인
