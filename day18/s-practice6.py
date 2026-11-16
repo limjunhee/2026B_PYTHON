@@ -39,8 +39,125 @@
 
 # ===========================================================================================================================================================================================================================================
 # [단계 1]
+import numpy as np
 import pandas as pd
 df = pd.read_csv('https://raw.githubusercontent.com/stedy/Machine-Learning-with-R-datasets/master/insurance.csv')
 df.info()
 
+# 의료비가 0보다 큰 데이터만 필터링
 df = df[df['charges'] > 0]
+
+# 숫자형, 범주형 피처 정의
+num_cols = ['age', 'bmi', 'children']
+cat_cols = ['sex', 'smoker', 'region']
+
+# LightGBM의 네이티브 범주형 피처 처리를 위한 데이터 타입 변환
+for col in cat_cols :
+    df[col] = df[col].astype('category')
+
+# 독립변수 X, 종속변수 Y
+X = df[num_cols + cat_cols]
+Y = df['charges']
+
+# [단계 2]
+from sklearn.model_selection import KFold, train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+
+# [단계 3]
+import optuna
+# 불필요한 로그 숨기기
+from lightgbm import LGBMRegressor, early_stopping
+optuna.logging.set_verbosity( optuna.logging.WARNING )
+
+# objective(trial) 함수를 정의
+def objective (trial) :
+    cv_r2_scores = [  ]         # 각 폴더별 검증 점수
+    best_iterations = [  ]      # 각 폴더별 최적 트리 번호
+    # KFold 교차 검증 객체
+    cv = KFold( n_splits=5, shuffle=True, random_state=42 )
+    for train_idx, val_idx in cv.split( X_train, Y_train ) :
+        X_tr, X_val = X_train.iloc[ train_idx ], X_train.iloc[ val_idx ]
+        Y_tr, Y_val = Y_train.iloc[ train_idx ], Y_train.iloc[ val_idx ]
+
+        model = LGBMRegressor(
+            n_estimators=1000,
+            # trial.suggest
+            learning_rate=trial.suggest_float( 'learning_rate', 0.01, 0.1),
+            num_leaves=trial.suggest_int('num_leaves', 10, 30),
+            max_depth=trial.suggest_int('max_depth', 3, 10),
+            min_child_samples=trial.suggest_int('min_child_samples', 10, 50),
+            subsample=trial.suggest_float('subsample', 0.6, 1.0),
+            subsample_freq=1 , verbose = -1, random_state=42, n_jobs=-1 ,
+            colsample_bytree=trial.suggest_float('colsample_bytree', 0.6, 1.0)
+        )
+
+        # 교차별 학습 모델 생성
+        # K폴드 별 훈련용/검증용으로 학습
+        model.fit(
+            X_tr, Y_tr, eval_set=[ (X_val, Y_val) ],
+            callbacks=[ early_stopping( stopping_rounds=30, verbose=False ) ]
+        )
+
+        r2 = model.score( X_val, Y_val )
+        cv_r2_scores.append(r2) # k폴드별 평가 점수 저장
+        best_iterations.append(model.best_iteration_) # k폴드별 최적 트리 번호 저장
+
+    # 평균 R2 점수 반환하기
+    trial.set_user_attr( 'best_n_estimators', int( np.mean( best_iterations ) ) )
+    return np.mean(cv_r2_scores)
+
+# [단계 4]
+sampler = optuna.samplers.TPESampler( seed=42 )
+study = optuna.create_study( direction='maximize', sampler=sampler )
+
+study.optimize( objective, n_trials=20)
+
+print( '최적 하이퍼파라미터:', study.best_params ) #도출된 최적 하이퍼파라미터
+# 최적 하이퍼파라미터: {'learning_rate': 0.09513349483389359, 'num_leaves': 10, 'max_depth': 3,'min_child_samples': 31, 'subsample': 0.9964702834358665, 'colsample_bytree': 0.9334196942770763}
+
+optimal_model = study.best_trial.user_attrs['best_n_estimators'] # 최적 트리 개수
+print( '최적 트리 개수:', optimal_model ) # 48
+
+# [단계 5]
+# 도출된 최적 파라미터와 n_estimators=optimal_model를 적용한 최종 LGBMRegressor 생성
+final_model = LGBMRegressor( 
+    random_state=42, verbose=-1, n_jobs=-1,
+    **study.best_params, # 최적 파라미터 포함 # **리스트 **딕셔너리 **전개연산자
+    n_estimators=optimal_model
+)
+
+# 훈련 데이터로 fit
+final_model.fit(X_train, Y_train)
+
+# Train R2, Test R2 각각 산출하고 Test R2가 0.85 이상인지 확인
+print( 'train r2:', final_model.score(X_train, Y_train) ) # train r2: 0.8748879704879398
+print( 'test r2:', final_model.score(X_test, Y_test) )    # test r2: 0.8831602829153037
+print((final_model.score(X_test, Y_test)) >= 0.85) # True
+
+# 최종 모델이 학습한 특성 이름과 특성 중요도 출력하여 주요 영향 변수 확인
+print(final_model.feature_names_in_)        # ['age', 'bmi', 'children', 'sex', 'smoker', 'region']
+print(final_model.feature_importances_) # [124  90  33   8  42  18]
+
+# [단계 6]
+# 최적화된 최종 모델 저장 및 로드
+import joblib
+joblib.dump( final_model, './day18/lgbm_insurance_model.pkl')
+model = joblib.load( './day18/lgbm_insurance_model.pkl' )
+
+# 신규 고객 2명의 원본 데이터를 활용한 샘플 데이터 2개 생성
+
+sample = pd.DataFrame( [
+    {'age': 28, 'bmi': 23.5, 'children': 0, 'sex': 'female', 'smoker': 'no', 'region': 'southwest'},
+    {'age': 52, 'bmi': 34.2, 'children': 2, 'sex': 'male', 'smoker': 'yes', 'region': 'southeast'}
+])
+
+# 신규 고객쪽 데이터도 범주형 카테고리 매핑을 위해 컬럼 타입을  X_train[col].dtype과 동일하게 변환
+for col in cat_cols:    
+    sample[col] = sample[col].astype(X_train[col].dtype)
+
+preds = model.predict(sample)
+print("신규 고객 1번 예측 연간 의료비: ", preds[0])
+print("신규 고객 2번 예측 연간 의료비: ", preds[1])
+
+# 신규 고객 1번 예측 연간 의료비:  4457.682345392447
+# 신규 고객 2번 예측 연간 의료비:  45126.01802072108
