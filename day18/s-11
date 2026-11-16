@@ -1,0 +1,25 @@
+import pandas as pd
+url = 'https://raw.githubusercontent.com/rickiepark/hg-mldl/master/wine.csv'
+df = pd.read_csv(url)
+
+X = df[['alcohol', 'sugar', 'pH']]
+Y = df['class']
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(
+    X, Y, test_size=0.2, random_state=42, stratify=Y
+)
+
+## 1) lightGBM : LGBMClassifier 분류모델 / LGBMRegressor 회귀모델
+from lightgbm import LGBMClassifier # 0레드 / 1 화이트 ->> 와인 종류 분류
+model = LGBMClassifier(
+    # 다양한 매개변수 설정
+    n_estimators = 100,      # 추정기(몇 번 학습을 할 것인가, 기본값 100이며 보통 1000~3000 설정)
+    learning_rate=0.05,      # 학습률(각 트리의 축소 비율), 기본값 0.1 -> 0.05만큼의 가중치(기울기)만큼 이전 트리의 오차를 보완하는 학습 보폭 설정
+    num_leaves=15,           # 하나의 트리(모델)가 가질 수 있는 최대 리프 노드 수( 성능결정, 과적합 억제하는 1순위 튜닝 변수 )
+    max_depth=6,             # 하나의 트리 최대 깊이, 특정 가지만 비정상적으로 깊어지는 것을 방지. 기본값 -1(무제한)
+    min_child_samples=20,    # 리프 노드의 최소 샘플 수( 과적합 방지용 ), 기본값 20
+    subsample=0.8,           # 매 트리 학습마다 랜덤으로 선정된 80%의 데이터만 가지고 학습하겠다
+    subsample_freq=1,        # subsample을 몇 번의 트리마다 실행할지 결정(0이면 subsample 설정해도 작동 X)
+    colsample_bytree=0.8,    # 매 학습마다 랜덤으로 전체 특성 중 80%만 무작위 선택 학습 
+)
