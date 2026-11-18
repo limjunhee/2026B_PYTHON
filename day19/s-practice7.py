@@ -73,8 +73,8 @@ plt.show()
 
 
 # [단계 3]
-best_model = KMeans( n_clusters = 4, random_state=42 )
-pred = best_model.fit_predict( X_scaled ) # 고객별 군집 번호 예측하기
+model = KMeans( n_clusters = 4, random_state=42 )
+pred = model.fit_predict( X_scaled ) # 고객별 군집 번호 예측하기
 X['cluster'] = pred # 예측 결과 데이터프레임에 'cluster' 행으로 추가
 print(X['cluster'].value_counts()) # 각 군집별 고객 분포 확인
 # cluster
@@ -98,7 +98,7 @@ print(pca.components_.T) # 주 특성별 가중치 확인
 # 축소된 죄표 값 컬럼으로 각각 추가
 X['PC1'] = X_pca[ :, 0 ]
 X['PC2'] = X_pca[ :, 1 ]
-
+model.fit_predict( X_pca )
 
 # [단계 5]
 
@@ -119,7 +119,7 @@ for idx, cluter_id in enumerate( sorted_cluster.index , start=1 ) :
     label_map[ cluter_id ] = f'Grade{idx}'
 
 print(label_map)
-# {2: 'Grade1', 1: 'Grade2', 3: 'Grade3', 0: 'Grade4'}
+# {1: 'Grade1', 3: 'Grade2', 2: 'Grade3', 0: 'Grade4'}
 
 X['cluster_label'] = X['cluster'].replace( label_map )
 
